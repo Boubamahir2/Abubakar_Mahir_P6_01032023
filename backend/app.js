@@ -7,6 +7,9 @@ import mongoSanitize from 'express-mongo-sanitize';
 import rateLimiter from 'express-rate-limit';
 import path from 'path';
 
+// Routers
+import authRouter from './modules/auth/routes/index.js';
+
 
 export const runApp = () => {
   const app = express();
