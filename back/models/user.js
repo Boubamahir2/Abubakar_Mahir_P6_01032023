@@ -26,7 +26,8 @@ const UserSchema = new mongoose.Schema(
 // A pre hook is defined on the UserSchema object using the pre() method. This hook is executed before a new user is saved to the database, and it hashes the user's password using bcryptjs.
 UserSchema.pre('save', async function (next) {
   const salt = await bcrypt.genSalt(10);
-  this.password = bcrypt.hash(this.password, salt);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
 });
 
 // Two instance methods are defined on the UserSchema object using the methods property. The createJWT() method creates a JWT for the user, and saves a record of the token in the database. 

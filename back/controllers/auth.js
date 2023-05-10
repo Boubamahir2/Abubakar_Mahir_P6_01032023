@@ -51,7 +51,58 @@ const register = catchAsyncError(async (req, res, next) => {
 });
 
 const login = catchAsyncError(async (req, res, next) => {
+  if (!req.body.email) {
+    return next(new ErrorHandler(ResponseMessages.EMAIL_REQUIRED, 400));
+  }
+  
 
+  // validate email
+
+ let user = await models.User.findOne({
+    email: utility.encrypt(req.body.email),
+  }).select('+password');
+  if (!user) {
+    return next(new ErrorHandler(ResponseMessages.INCORRECT_EMAIL, 400));
+  }
+  
+  if (!req.body.password) {
+    return next(new ErrorHandler(ResponseMessages.PASSWORD_REQUIRED, 400));
+  }
+
+  const isMatch = await user.comparePassword(req.body.password);
+
+  if (!isMatch) {
+    return next(new ErrorHandler(ResponseMessages.INCORRECT_PASSWORD, 400));
+  }
+
+  const authToken = await models.AuthToken.findOne({ user: user._id });
+  if (!authToken) {
+    const tokenObj = await utility.generateAuthToken(user);
+    return res.status(200).json({
+      success: true,
+      message: ResponseMessages.LOGIN_SUCCESS,
+      token: tokenObj.token,
+    });
+  }
+
+  let token = authToken.token;
+  let expiresAt = authToken.expiresAt;
+
+  if (expiresAt < new Date().getTime() / 1000) {
+    await authToken.remove();
+    const tokenObj = await utility.generateAuthToken(user);
+
+    token = tokenObj.token;
+    expiresAt = tokenObj.expiresAt;
+  }
+
+  res.status(200).json({
+    message: ResponseMessages.LOGIN_SUCCESS,
+    user: {
+      email: user.email,
+    },
+    token: token,
+  });
 });
 
 const logout = catchAsyncError(async (req, res, next) => {});
