@@ -7,7 +7,7 @@ import rateLimiter from 'express-rate-limit';
 import path from 'path';
 
 // Routers
-import authRouter from './modules/auth/routes/index.js';
+import authRouter from './routes/user.js';
 
 
 export const runApp = () => {

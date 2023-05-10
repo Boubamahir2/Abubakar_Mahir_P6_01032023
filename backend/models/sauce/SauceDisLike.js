@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 console.log('Initializing User model...');
-const sauceLikeSchema = new mongoose.Schema({
+const sauceDisLikeSchema = new mongoose.Schema({
     sauce: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Sauce",
@@ -24,11 +24,11 @@ const sauceLikeSchema = new mongoose.Schema({
     }
 });
 
-sauceLikeSchema.pre("save", function (next) {
+sauceDisLikeSchema.pre("save", function (next) {
     this.updatedAt = Date.now();
     next();
 });
 
-const SauceLike = mongoose.model("SauceLike", sauceLikeSchema);
+const SauceDisLike = mongoose.model("SauceDisLike", sauceDisLikeSchema);
 
-export default SauceLike;
+export default SauceDisLike;

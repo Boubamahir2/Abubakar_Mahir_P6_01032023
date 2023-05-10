@@ -1,5 +1,7 @@
 import jwt from 'jsonwebtoken';
 import models from '../models/index.js';
+// import Crypto-js to encrypt email
+import CryptoJS from 'crypto-js';
 
 const utility = {};
 
@@ -73,5 +75,33 @@ utility.checkIfSameUser = async (user, userId) => {
 
   return false;
 };
+
+//  encrypt email using crypto-js AES
+utility.encrypt = (string)=> {
+  const encryptedEmail = CryptoJS.AES.encrypt(
+    string,
+    CryptoJS.enc.Base64.parse(process.env.CRYPTOJS_KEY),
+    {
+      iv: CryptoJS.enc.Base64.parse(process.env.CRYPTOJS_IV),
+      mode: CryptoJS.mode.ECB,
+      padding: CryptoJS.pad.Pkcs7,
+    }
+  );
+  return encryptedEmail.toString();
+}
+
+// Decrypt email that has been encrypted by 'encrypt()'
+utility.decrypt = (encrypted_string)=> {
+  const bytes = CryptoJS.AES.decrypt(
+    encrypted_string,
+    CryptoJS.enc.Base64.parse(process.env.CRYPTOJS_KEY),
+    {
+      iv: CryptoJS.enc.Base64.parse(process.env.CRYPTOJS_IV),
+      mode: CryptoJS.mode.ECB,
+      padding: CryptoJS.pad.Pkcs7,
+    }
+  );
+  return bytes.toString(CryptoJS.enc.Utf8);
+}
 
 export default utility;
