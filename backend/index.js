@@ -1,84 +1,129 @@
 import dotenv from 'dotenv';
+import { MongoClient } from 'mongodb';
 import mongoose from 'mongoose';
-import bunyan from 'bunyan';
+import { runApp, closeApp } from './app.js';
+
+// app
+const app = runApp();
 
 dotenv.config();
 
-// Store connection object
-const db = mongoose.connection;
+const port = process.env.PORT || 6001;
 
-const config = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  // ssl: true, // Make sure you have the necessary SSL certificate configurations
+const connectToDatabase = async () => {
+  try {
+    console.log('[database]: connecting to MongoDB...');
+    await mongoose.set('strictQuery', false).connect(process.env.MONGO_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+
+    console.log('[database]: connected successfully to MongoDB');
+
+    // Health Route
+    app.use('/api/v1/health', (req, res, next) => {
+      res.status(200).json({
+        success: true,
+        server: 'online',
+        message: 'server is up and running',
+      });
+    });
+
+    // Error Handler
+    closeApp(app);
+
+    const server = app.listen(port, (err) => {
+      if (err) {
+        console.log(`[server] could not start http server on port: ${port}`);
+        return;
+      }
+      console.log(`[server] running on port: ${port}`);
+    });
+
+    // Handling Uncaught Exception
+    process.on('uncaughtException', (err) => {
+      console.log(`Error: ${err.message}`);
+      console.log(`[server] shutting down due to Uncaught Exception`);
+
+      server.close(() => {
+        process.exit(1);
+      });
+    });
+
+    // Unhandled Promise Rejection
+    process.on('unhandledRejection', (err) => {
+      console.log(`Error: ${err.message}`);
+      console.log(`[server] shutting down due to Unhandled Promise Rejection`);
+
+      server.close(() => {
+        process.exit(1);
+      });
+    });
+  } catch (err) {
+    console.log(`[database]: could not connect due to [${err.message}]`);
+
+    // Health Route
+    app.use('/api/v1/health', (req, res, next) => {
+      res.status(200).json({
+        success: true,
+        server: 'offline',
+        message: 'server is down due to database connection error',
+      });
+    });
+
+    app.use('*', (req, res, next) => {
+      res.status(500).json({
+        success: false,
+        server: 'offline',
+        message: '[server] offline due to database error',
+      });
+    });
+
+    console.log(`[database]: could not connect due to [${err.message}]`);
+
+    const server = app.listen(port, (err) => {
+      if (err) {
+        console.log(`[server] could not start http server on port: ${port}`);
+        return;
+      }
+      console.log(`[server] running on port: ${port}`);
+    });
+
+    setTimeout(() => {
+      server.close();
+      connectToDatabase();
+    }, 10000);
+  }
 };
 
-// Logging configuration
-const log = bunyan.createLogger({
-  name: 'MongoDB Driver',
-  serializers: {
-    dbQuery: serializer,
-  },
-  streams: [
-    {
-      stream: process.stdout,
-      level: 'info',
-    },
-    {
-      stream: process.stdout,
-      level: 'debug',
-    },
-    {
-      stream: process.stderr,
-      level: 'error',
-    },
-    {
-      type: 'rotating-file',
-      path: './logs/mongodb.log', // Keep logs in this path
-      period: '1d', // Daily rotation
-      count: 3, // Keep 3 backup copies
-    },
-  ],
-});
+// Starting Server
+(async () => {
+  if (process.env.SERVER_MAINTENANCE === 'true') {
+    // Health Route
+    app.use('/api/v1/health', (req, res, next) => {
+      return res.status(200).json({
+        success: false,
+        server: 'maintenance',
+        message: 'Server is under maintenance',
+      });
+    });
 
-// Serializer function to convert data to JSON objects
-function serializer(data) {
-  let query = JSON.stringify(data.query);
-  let options = JSON.stringify(data.options || {});
+    app.use('*', (req, res, next) => {
+      res.status(503).json({
+        success: false,
+        server: 'maintenance',
+        message: '[server] offline for maintenance',
+      });
+    });
 
-  return `db.${data.coll}.${data.method}(${query}, ${options});`;
-}
-
-// Mongoose debug mode to log queries
-mongoose.set('debug', function (coll, method, query, doc, options) {
-  let set = {
-    coll: coll,
-    method: method,
-    query: query,
-    doc: doc,
-    options: options,
-  };
-
-  log.info({
-    dbQuery: set,
-  });
-});
-
-// Connect to MongoDB
-mongoose
-  .connect(process.env.URI, config)
-  .then(() => {
-    console.log('Connection to MongoDB successful!');
-  })
-  .catch((err) => {
-    console.log('Connection to MongoDB failed:', err);
-  });
-
-// Event handlers for successful and failed connections
-db.on('open', () => {
-  console.log('Connection to MongoDB successful!');
-}).on('error', (err) => {
-  console.log('Connection to MongoDB failed:', err);
-});
-
-export default db;
+    app.listen(port, (err) => {
+      if (err) {
+        console.log(`[server] could not start http server on port: ${port}`);
+        return;
+      }
+      console.log(`[server] running on port: ${port}`);
+    });
+  } else {
+    connectToDatabase();
+  }
+})();
