@@ -1,8 +1,8 @@
-const Sauce = require('../models/sauce').default;
-const fs = require('fs');
+import Sauce from '../models/sauce';
+import { unlinkSync, unlink } from 'fs';
 
 // Get all sauces
-exports.readAllSauces = (req, res, next) => {
+export function readAllSauces(req, res, next) {
   Sauce.find()
     .then((allSauces) => {
       allSauces = allSauces.map((sauce) => {
@@ -15,20 +15,20 @@ exports.readAllSauces = (req, res, next) => {
       res.status(200).json(allSauces);
     })
     .catch((error) => res.status(500).json({ error }));
-};
+}
 
 // Get one sauce
-exports.readOneSauce = (req, res, next) => {
+export function readOneSauce(req, res, next) {
   Sauce.findOne({ _id: req.params.id })
     .then((sauce) => {
       sauce.imageUrl = `${req.protocol}://${req.get('host')}${sauce.imageUrl}`;
       res.status(200).json(sauce, linksHateoas(sauce._id));
     })
     .catch((error) => res.status(500).json({ error }));
-};
+}
 
 // Create a sauce
-exports.createSauce = (req, res, next) => {
+export function createSauce(req, res, next) {
   const sauceObject = JSON.parse(req.body.sauce);
   const sauce = new Sauce({
     ...sauceObject,
@@ -39,10 +39,10 @@ exports.createSauce = (req, res, next) => {
     .save()
     .then((sauce) => res.status(201).json(sauce, linksHateoas(sauce._id)))
     .catch((error) => res.status(401).json({ error }));
-};
+}
 
 // Update a sauce
-exports.updateSauce = (req, res, next) => {
+export function updateSauce(req, res, next) {
   const sauceObject = req.file
     ? {
         ...JSON.parse(req.body.sauce),
@@ -59,7 +59,7 @@ exports.updateSauce = (req, res, next) => {
         const filename = sauce.imageUrl.split('/images/')[1];
         if (sauceObject.imageUrl) {
           // Verify that there is an existing image before
-          fs.unlinkSync(`images/${filename}`);
+          unlinkSync(`images/${filename}`);
         }
 
         Sauce.updateOne(
@@ -73,17 +73,17 @@ exports.updateSauce = (req, res, next) => {
     .catch((error) => {
       res.status(400).json({ error });
     });
-};
+}
 
 // Delete a sauce
-exports.deleteSauce = (req, res, next) => {
+export function deleteSauce(req, res, next) {
   Sauce.findOne({ _id: req.params.id })
     .then((sauce) => {
       if (sauce.userId != req.auth.userId) {
         res.status(401).json({ message: 'Not authorized' });
       } else {
         const filename = sauce.imageUrl.split('/images/')[1];
-        fs.unlink(`images/${filename}`, () => {
+        unlink(`images/${filename}`, () => {
           Sauce.deleteOne({ _id: req.params.id })
             .then((sauce) =>
               res.status(200).json(sauce, linksHateoas(sauce._id))
@@ -93,10 +93,10 @@ exports.deleteSauce = (req, res, next) => {
       }
     })
     .catch((error) => res.status(400).json({ error }));
-};
+}
 
 // Like or Dislike a sauce
-exports.likeSauce = (req, res, next) => {
+export function likeSauce(req, res, next) {
   Sauce.findOne({ _id: req.params.id })
     .then((sauce) => {
       switch (req.body.like) {
@@ -212,7 +212,7 @@ exports.likeSauce = (req, res, next) => {
       }
     })
     .catch((error) => res.status(400).json({ error }));
-};
+}
 
 /**
  * Model of Hateoas links returned for all methods
