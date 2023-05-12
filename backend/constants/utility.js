@@ -6,19 +6,9 @@ import mongoose from 'mongoose';
 const utility = {};
 
 utility.generateAuthToken = async (user) => {
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+  return jwt.sign({ user}, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_LIFETIME,
   });
-
-  const decodedData = jwt.decode(token);
-
-  const authToken = await models.AuthToken.create({
-    token: token,
-    user: user._id,
-    expiresAt: decodedData.exp,
-  });
-
-  return authToken;
 };
 
 // Check Username Availability

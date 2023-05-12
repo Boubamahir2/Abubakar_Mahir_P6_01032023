@@ -12,7 +12,6 @@ import authRouter from './routes/user.js';
 
 export const runApp = () => {
   const app = express();
-
   app.use(
     cors({
       origin: '*',

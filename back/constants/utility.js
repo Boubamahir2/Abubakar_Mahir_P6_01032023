@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import models from '../models/index.js';
-// import Crypto-js to encrypt email
 import CryptoJS from 'crypto-js';
+import mongoose from 'mongoose';
 
 const utility = {};
 
@@ -77,7 +77,7 @@ utility.checkIfSameUser = async (user, userId) => {
 };
 
 //  encrypt email using crypto-js AES
-utility.encrypt = (string)=> {
+utility.encrypt = (string) => {
   const encryptedEmail = CryptoJS.AES.encrypt(
     string,
     CryptoJS.enc.Base64.parse(process.env.CRYPTOJS_KEY),
@@ -88,10 +88,10 @@ utility.encrypt = (string)=> {
     }
   );
   return encryptedEmail.toString();
-}
+};
 
 // Decrypt email that has been encrypted by 'encrypt()'
-utility.decrypt = (encrypted_string)=> {
+utility.decrypt = (encrypted_string) => {
   const bytes = CryptoJS.AES.decrypt(
     encrypted_string,
     CryptoJS.enc.Base64.parse(process.env.CRYPTOJS_KEY),
@@ -102,6 +102,60 @@ utility.decrypt = (encrypted_string)=> {
     }
   );
   return bytes.toString(CryptoJS.enc.Utf8);
-}
+};
+
+const emailRegExp =
+  /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+utility.validateEmail = (email) => {
+  return emailRegExp.test(email);
+};
+
+utility.isValidObjectId = (uid) => {
+  return mongoose.Types.ObjectId.isValid(uid);
+};
+
+// Check password complexity
+utility.validatePassword = (password) => {
+  if (password.length < 8 || password.length > 32) return false;
+  return true;
+};
+
+// Check password complexity
+utility.checkPasswordStrength = (password) => {
+  let strength = 0;
+  // contain at least 1 lowercase letter
+  if (password.match(/(?=.*[a-z])/)) {
+    strength += 1;
+  }
+
+  // contain at least 1 uppercase letter
+  if (password.match(/(?=.*[A-Z])/)) {
+    strength += 1;
+  }
+
+  // contain at least 1 number
+  if (password.match(/[0-9]+/)) {
+    strength += 1;
+  }
+
+  // contain at least 1 special character
+  if (password.match(/[$@#&!]+/)) {
+    strength += 1;
+  }
+
+  // At least 8 characters long
+  if (password.length > 7) {
+    strength += 1;
+  }
+
+  if (strength < 4) {
+    return false;
+  } else if (strength < 5) {
+    return true;
+  } else {
+    return true;
+  }
+};
 
 export default utility;

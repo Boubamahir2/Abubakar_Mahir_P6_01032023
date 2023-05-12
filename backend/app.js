@@ -86,7 +86,7 @@ export const runApp = () => {
   });
 
   // ROUTING
-  app.use('/api/auth',authLimiter, authRouter);
+ app.use('/api/auth', authRouter);
   return app;
 };
 

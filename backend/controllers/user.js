@@ -4,13 +4,17 @@ const bcrypt = require('bcrypt');
 require('dotenv').config();
 
 // Import User model
-const User = require('../models/user');
+const User = require('../models/user').default;
 
 const jwt = require('jsonwebtoken');
 
+// import Crypto-js to encrypt email
+const CryptoJS = require('crypto-js');
+const CRYPTOJS_KEY = process.env.CRYPTOJS_KEY;
+const iv = process.env.CRYPTOJS_IV;
 
 // Signup logic
-const signup = (req, res, next) => {
+exports.signup = (req, res, next) => {
   const cypherEmail = encrypt(req.body.email);
   bcrypt
     .hash(req.body.password, 10)
@@ -46,7 +50,7 @@ const signup = (req, res, next) => {
 };
 
 // Sign-in logic
-const login = (req, res, next) => {
+exports.login = (req, res, next) => {
   User.findOne({ email: encrypt(req.body.email) })
     .then((user) => {
       if (!user) {
@@ -64,7 +68,7 @@ const login = (req, res, next) => {
             token: jwt.sign(
               { userId: user._id },
               process.env.JWT_TOKEN_SECRET,
-              { expiresIn: process.env.JWT_LIFETIME } // User must reconnect after 24h
+              { expiresIn: '24h' } // User must reconnect after 24h
             ),
           });
         })
@@ -73,4 +77,74 @@ const login = (req, res, next) => {
     .catch((error) => res.status(500).json({ error }));
 };
 
-export {signup, login} 
+// encrypt email using crypto-js AES
+function encrypt(string) {
+  const encryptedEmail = CryptoJS.AES.encrypt(
+    string,
+    CryptoJS.enc.Base64.parse(CRYPTOJS_KEY),
+    {
+      iv: CryptoJS.enc.Base64.parse(iv),
+      mode: CryptoJS.mode.ECB,
+      padding: CryptoJS.pad.Pkcs7,
+    }
+  );
+  return encryptedEmail.toString();
+}
+
+// Decrypt email that has been encrypted by 'encrypt()'
+function decrypt(encrypted_string) {
+  const bytes = CryptoJS.AES.decrypt(
+    encrypted_string,
+    CryptoJS.enc.Base64.parse(CRYPTOJS_KEY),
+    {
+      iv: CryptoJS.enc.Base64.parse(iv),
+      mode: CryptoJS.mode.ECB,
+      padding: CryptoJS.pad.Pkcs7,
+    }
+  );
+  return bytes.toString(CryptoJS.enc.Utf8);
+}
+
+// Email validity
+function validateEmail(val) {
+  const re =
+    /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(val);
+}
+
+// Check password complexity
+function checkPasswordStrength(password) {
+  let strength = 0;
+  // contain at least 1 lowercase letter
+  if (password.match(/(?=.*[a-z])/)) {
+    strength += 1;
+  }
+
+  // contain at least 1 uppercase letter
+  if (password.match(/(?=.*[A-Z])/)) {
+    strength += 1;
+  }
+
+  // contain at least 1 number
+  if (password.match(/[0-9]+/)) {
+    strength += 1;
+  }
+
+  // contain at least 1 special character
+  if (password.match(/[$@#&!]+/)) {
+    strength += 1;
+  }
+
+  // At least 8 characters long
+  if (password.length > 7) {
+    strength += 1;
+  }
+
+  if (strength < 4) {
+    return false;
+  } else if (strength < 5) {
+    return true;
+  } else {
+    return true;
+  }
+}
