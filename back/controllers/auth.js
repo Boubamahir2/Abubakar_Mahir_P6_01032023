@@ -118,7 +118,7 @@ const login = async (req, res, next) => {
     return res.status(200).json({
       message: ResponseMessages.LOGIN_SUCCESS,
       user: {
-        email: user.email,
+        email: utility.decrypt(user.email),
       },
       token: token,
     });

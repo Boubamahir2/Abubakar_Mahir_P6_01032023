@@ -1,11 +1,3 @@
-class ErrorHandler extends Error {
-  constructor(message, statusCode) {
-    super(message);
-    this.statusCode = statusCode;
-
-    Error.captureStackTrace(this, this.constructor);
-  }
-}
 
 const ResponseMessages = {};
 
@@ -69,6 +61,5 @@ ResponseMessages.NOT_FOUND = 'Not found';
 
 export default ResponseMessages;
 
-export { ErrorHandler };
 
 
