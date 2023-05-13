@@ -8,6 +8,7 @@ import path from 'path';
 
 // Routers
 import authRouter from './routes/user.js';
+import sauceRouter from './routes/sauce.js';
 
 
 export const runApp = () => {
@@ -50,6 +51,7 @@ export const runApp = () => {
 
   // ROUTING
   app.use('/api/auth', authRouter);
+  app.use('/api', sauceRouter);
   return app;
 };
 
