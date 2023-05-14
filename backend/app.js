@@ -71,8 +71,7 @@ export const runApp = () => {
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   });
 
-  const __dirname = path.resolve();
-  app.use(express.static(path.join(__dirname, 'public')));
+  
 
   if (process.env.NODE_ENV !== 'production') {
     app.use(morgan('dev'));
@@ -86,6 +85,8 @@ export const runApp = () => {
   });
 
   // ROUTING
+  const __dirname = path.resolve();
+ app.use('/images', express.static(path.join(__dirname, 'public')));
  app.use('/api/auth', authRouter);
   return app;
 };

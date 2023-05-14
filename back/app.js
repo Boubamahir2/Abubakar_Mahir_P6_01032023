@@ -36,7 +36,7 @@ export const runApp = () => {
   );
 
   const __dirname = path.resolve();
-  app.use(express.static(path.join(__dirname, 'public')));
+  app.use('/images',express.static(path.join(__dirname, 'images')));
 
   if (process.env.NODE_ENV !== 'production') {
     app.use(morgan('dev'));
@@ -52,6 +52,10 @@ export const runApp = () => {
   // ROUTING
   app.use('/api/auth', authRouter);
   app.use('/api', sauceRouter);
+
+  // middleware
+ 
+  
   return app;
 };
 

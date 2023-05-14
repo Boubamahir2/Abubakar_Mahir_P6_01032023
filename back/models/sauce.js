@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const sauceSchema = new mongoose.Schema({
-  owner: {
+  userId: {
     type: mongoose.Schema.ObjectId,
     ref: 'User',
     required: true,
@@ -36,7 +36,7 @@ const sauceSchema = new mongoose.Schema({
     trim: true,
     text: true,
   },
-  coverUrl: { type: String, required: true },
+  imageUrl: { type: String, required: true },
   heat: { type: Number, required: true },
   likes: { type: Number, default: 0 },
   dislikes: { type: Number, default: 0 },
