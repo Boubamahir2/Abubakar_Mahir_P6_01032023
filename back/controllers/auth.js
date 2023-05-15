@@ -1,6 +1,4 @@
-import catchAsyncError, { ErrorHandler } from '../constants/errors.js';
 import models from '../models/index.js';
-import validators from '../constants/validators.js';
 import ResponseMessages from '../constants/responseMessages.js';
 import utility from '../constants/utility.js';
 
@@ -15,7 +13,7 @@ const register = async (req, res, next) => {
       return res.status(400).json({ message: ResponseMessages.EMAIL_REQUIRED });
     }
 
-    if (req.body.email && !validators.validateEmail(req.body.email)) {
+    if (req.body.email && !utility.validateEmail(req.body.email)) {
       return res.status(400).json({ message: ResponseMessages.INVALID_EMAIL });
     }
 
@@ -25,7 +23,7 @@ const register = async (req, res, next) => {
         .json({ message: ResponseMessages.PASSWORD_REQUIRED });
     }
 
-    if (password && !validators.checkPasswordStrength(password)) {
+    if (password && !utility.checkPasswordStrength(password)) {
       return res
         .status(400)
         .json({ message: ResponseMessages.PASSWORD_STRENGTH });
@@ -123,6 +121,4 @@ const login = async (req, res, next) => {
   }
 };
 
-const logout = catchAsyncError(async (req, res, next) => {});
-
-export { register, login, logout };
+export { register, login };

@@ -1,3 +1,4 @@
+// Importing necessary packages
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -10,7 +11,7 @@ import path from 'path';
 import authRouter from './routes/user.js';
 import sauceRouter from './routes/sauce.js';
 
-
+// Function to run the application
 export const runApp = () => {
   const app = express();
   app.use(
@@ -24,19 +25,18 @@ export const runApp = () => {
 
   app.use(express.json({ limit: '100mb' }));
   app.use(helmet());
-  app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' }));
   app.use(morgan('common'));
   app.use(mongoSanitize());
   app.set('trust proxy', true);
   app.use(
     rateLimiter({
       windowMs: 1 * 60 * 1000,
-      max: 300,
+      max: 60,
     })
   );
 
   const __dirname = path.resolve();
-  app.use('/images',express.static(path.join(__dirname, 'images')));
+  app.use('/images', express.static(path.join(__dirname, 'images')));
 
   if (process.env.NODE_ENV !== 'production') {
     app.use(morgan('dev'));
@@ -53,12 +53,8 @@ export const runApp = () => {
   app.use('/api/auth', authRouter);
   app.use('/api', sauceRouter);
 
-  // middleware
- 
-  
   return app;
 };
-
 
 export const closeApp = (app) => {
   // Middleware for Errors

@@ -1,4 +1,4 @@
-import { register,login,logout } from "./auth.js";
+import { register,login } from "./auth.js";
 import {
   fetchAllSauce,
   fetchSingleSauce,
@@ -13,7 +13,6 @@ const sauceController = {};
 // auth controller
 authController.register = register;
 authController.login = login;
-authController.logout = logout;
 
 // sauce controller
 sauceController.createSauce = createSauce;

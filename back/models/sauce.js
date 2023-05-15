@@ -26,12 +26,6 @@ const sauceSchema = new mongoose.Schema({
     trim: true,
     text: true,
   },
-  mainPepper: {
-    type: String,
-    required: [true, 'Please enter some description.'],
-    trim: true,
-    text: true,
-  },
   imageUrl: { type: String, required: true },
   heat: { type: Number, required: true },
   likes: { type: Number, default: 0 },

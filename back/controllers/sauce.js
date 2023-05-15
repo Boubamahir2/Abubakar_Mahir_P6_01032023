@@ -10,20 +10,20 @@ export const fetchAllSauce = (req, res, next) => {
         sauce.imageUrl = `${req.protocol}://${req.get('host')}${
           sauce.imageUrl
         }`;
-      
+
         return { ...sauce._doc };
       });
       res.status(200).json(allSauces);
     })
-    .catch((error) => console.log(error));
+    .catch((error) => res.status(400).json({ error }));
 };
 
 // Get one sauce
 export const fetchSingleSauce = (req, res, next) => {
   Sauce.findOne({ _id: req.params.id })
     .then((sauce) => {
-      console.log(sauce.userId, 'sauce.userId');
-      console.log(req.auth.userId, 'userId');
+      // console.log(sauce.userId, 'sauce.userId');
+      // console.log(req.auth.userId, 'userId');
       sauce.imageUrl = `${req.protocol}://${req.get('host')}${sauce.imageUrl}`;
       res.status(200).json(sauce);
     })
@@ -78,7 +78,7 @@ export const updateSauce = (req, res, next) => {
     { ...sauceObject, _id: req.params.id }
   )
     .then(() => res.status(200).json({ message: 'objet mise à jour' }))
-    .catch((error) => console.log(error));
+    .catch((error) => res.status(400).json({ error }));
 };
 
 // Delete a sauce

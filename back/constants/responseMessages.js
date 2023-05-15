@@ -1,13 +1,4 @@
-class ErrorHandler extends Error {
-  constructor(message, statusCode) {
-    super(message);
-    this.statusCode = statusCode;
 
-    Error.captureStackTrace(this, this.constructor);
-  }
-}
-
-export { ErrorHandler };
 
 const ResponseMessages = {};
 
@@ -17,7 +8,7 @@ ResponseMessages.EMAIL_REQUIRED = 'Email is required';
 ResponseMessages.EMAIL_USERNAME_REQUIRED = 'Email or username is required';
 ResponseMessages.PASSWORD_REQUIRED = 'Password is required';
 ResponseMessages.PASSWORD_STRENGTH =
-  'Password complexity is weak, please check that your password contain at least 1 lowercase letter, 1 uppercase letter, 1 number, 1 special character and 8 characters minimum';
+  'Password complexity is weak, please check that your password is 8 characters minimum , contains at least 1 lowercase letter, 1 uppercase letter, 1 number, and 1 special character ';
 
 /// Incorrect Response Messages
 ResponseMessages.INCORRECT_EMAIL = 'No user found with this email';
@@ -68,5 +59,15 @@ ResponseMessages.INVALID_PASSWORD = 'Invalid password';
 ResponseMessages.UNAUTHORIZED =
   'You are not authorized to perform this operation';
 ResponseMessages.NOT_FOUND = 'Not found';
+
+class ErrorHandler extends Error {
+  constructor(message, statusCode) {
+    super(message);
+    this.statusCode = statusCode;
+
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+export { ErrorHandler };
 
 export default ResponseMessages;
