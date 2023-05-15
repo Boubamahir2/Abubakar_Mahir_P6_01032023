@@ -5,8 +5,8 @@ import {
   createSauce,
   updateSauce,
   deleteSauce,
-  likeSauce,
 } from './sauce.js';
+import likeSauce from "./like.js";
 const authController = {};
 const sauceController = {};
 

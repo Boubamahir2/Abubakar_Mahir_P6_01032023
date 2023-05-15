@@ -6,8 +6,6 @@ import utility from '../constants/utility.js';
 
 // The controller function is called register, which is an asynchronous function wrapped with catchAsyncError to handle any errors that might occur during the execution of this function.
 // this function ensures that the user's email is encrypted before it is stored in the database, and it validates the email and password fields before creating a new user document.
-
-
 const register = async (req, res, next) => {
   try {
     const password = req.body.password;
@@ -111,15 +109,12 @@ const login = async (req, res, next) => {
     if (expiresAt < new Date().getTime() / 1000) {
       await authToken.remove();
       const tokenObj = await utility.generateAuthToken(user);
-
       token = tokenObj.token;
     }
 
     return res.status(200).json({
       message: ResponseMessages.LOGIN_SUCCESS,
-      user: {
-        email: utility.decrypt(user.email),
-      },
+      userId: user._id,
       token: token,
     });
   } catch (error) {

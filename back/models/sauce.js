@@ -1,11 +1,7 @@
 import mongoose from 'mongoose';
 
 const sauceSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'User',
-    required: true,
-  },
+  userId: { type: String, required: true },
   name: {
     type: String,
     required: [true, 'Please enter sauce name.'],

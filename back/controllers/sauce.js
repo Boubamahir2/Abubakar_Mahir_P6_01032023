@@ -10,29 +10,25 @@ export const fetchAllSauce = (req, res, next) => {
         sauce.imageUrl = `${req.protocol}://${req.get('host')}${
           sauce.imageUrl
         }`;
-        const links = linksHateoas(sauce._id);
-        return { ...sauce._doc, links };
+      
+        return { ...sauce._doc };
       });
       res.status(200).json(allSauces);
     })
-    .catch((error) => res.status(500).json({ error }));
+    .catch((error) => console.log(error));
 };
 
 // Get one sauce
-
 export const fetchSingleSauce = (req, res, next) => {
   Sauce.findOne({ _id: req.params.id })
     .then((sauce) => {
-      // console.log(sauce);
+      console.log(sauce.userId, 'sauce.userId');
+      console.log(req.auth.userId, 'userId');
       sauce.imageUrl = `${req.protocol}://${req.get('host')}${sauce.imageUrl}`;
-      const sauceWithLinks = linksHateoas(sauce._id);
-      console.log(sauce, sauceWithLinks)
-      res.status(200).json({ sauce, links: sauceWithLinks });
+      res.status(200).json(sauce);
     })
-    .catch((error) => res.status(500).json({ error }));
+    .catch((error) => res.status(500).json( error ));
 };
-
-
 
 // Create a sauce
 export const createSauce = (req, res, next) => {
@@ -41,18 +37,34 @@ export const createSauce = (req, res, next) => {
   // console.log(sauceObject, 'sauceObject');
   const sauce = new Sauce({
     ...sauceObject,
-    userId:req.auth.userId,
+    userId: req.auth.userId,
     imageUrl: `/images/${req.file.filename}`,
+    likes: 0,
+    dislikes: 0,
+    usersLiked: [' '],
+    usersdisLiked: [' '],
   });
   sauce
     .save()
-    const sauceWithLinks = linksHateoas(sauce._id);
-    res.status(201).json({ sauce, links: sauceWithLinks })
-    .catch((error) => console.log(error));
+    .then(() => res.status(201).json({ message: 'Sauce created' }))
+    .catch((error) => res.status(400).json({ error }));
 };
 
 // Update a sauce
 export const updateSauce = (req, res, next) => {
+  if (req.file) {
+    Sauce.findOne({ _id: req.params.id })
+      .then((sauce) => {
+        const filename = sauce.imageUrl.split('/images')[1];
+        //suppression de l'image de la sauce car elle va être remplacer par la nouvelle image de sauce :
+        fs.unlink(`images/${filename}`, (err) => {
+          if (err) throw err;
+        });
+      })
+      .catch((error) => res.status(400).json({ error }));
+  }
+
+  //l'objet qui va être envoyé dans la base de donnée :
   const sauceObject = req.file
     ? {
         ...JSON.parse(req.body.sauce),
@@ -60,37 +72,19 @@ export const updateSauce = (req, res, next) => {
       }
     : { ...req.body };
 
-  Sauce.findOne({ _id: req.params.id })
-    .then((sauce) => {
-      if (sauce.userId != req.auth.userId) {
-        res.status(401).json({ message: 'Not authorized' });
-      } else {
-        // Remove the old image from directory before adding the new one
-        const filename = sauce.imageUrl.split('/images/')[1];
-        if (sauceObject.imageUrl) {
-          // Verify that there is an existing image before
-          fs.unlinkSync(`images/${filename}`);
-        }
-
-        Sauce.updateOne(
-          { _id: req.params.id },
-          { ...sauceObject, _id: req.params.id }
-        )
-          .then((sauce) => res.status(200).json(sauce, linksHateoas(sauce._id)))
-          .catch((error) => res.status(401).json({ error }));
-      }
-    })
-    .catch((error) => {
-      res.status(400).json({ error });
-    });
+  //update dans la base de donnée :
+  Sauce.updateOne(
+    { _id: req.params.id },
+    { ...sauceObject, _id: req.params.id }
+  )
+    .then(() => res.status(200).json({ message: 'objet mise à jour' }))
+    .catch((error) => console.log(error));
 };
 
 // Delete a sauce
 export const deleteSauce = (req, res, next) => {
-  console.log(req.params, 'deleteSauce fffffffffffffffffffffffffffffff');
   Sauce.findOne({ _id: req.params.id })
     .then((sauce) => {
-      console.log(sauce, 'deleteSauce fffffffffffffffffffffffffffffff')
       if (sauce.userId !==req.auth.userId) {
         res.status(401).json({ message: 'Not authorized' });
       } else {
@@ -98,7 +92,7 @@ export const deleteSauce = (req, res, next) => {
         fs.unlink(`images/${filename}`, () => {
           Sauce.deleteOne({ _id: req.params.id })
             .then((sauce) =>
-              res.status(200).json(sauce, linksHateoas(sauce._id))
+              res.status(200).json(sauce)
             )
             .catch((error) => res.status(400).json({ error }));
         });
@@ -226,41 +220,4 @@ export const likeSauce = (req, res, next) => {
     .catch((error) => res.status(400).json({ error }));
 };
 
-/**
- * Model of Hateoas links returned for all methods
- */
-function linksHateoas(sauceId) {
-  return [
-    {
-      rel: 'createSauce',
-      method: 'POST',
-      href: 'http://localhost:3000/api/sauces',
-    },
-    {
-      rel: 'updateSauce',
-      method: 'PUT',
-      href: `http://localhost:3000/api/sauces/${sauceId}`,
-    },
-    {
-      rel: 'readOneSauce',
-      method: 'GET',
-      href: `http://localhost:3000/api/sauces/${sauceId}`,
-    },
-    {
-      rel: 'readAllSauce',
-      method: 'GET',
-      href: 'http://localhost:3000/api/sauces',
-    },
 
-    {
-      rel: 'deleteSauce',
-      method: 'DELETE',
-      href: `http://localhost:3000/api/sauces/${sauceId}`,
-    },
-    {
-      rel: 'likeSauce',
-      method: 'POST',
-      href: `http://localhost:3000/api/sauces/${sauceId}/like`,
-    },
-  ];
-}
