@@ -10,7 +10,8 @@ let  MIME_TYPES = {
   
 };
 
-// Indique à multer où enregistrer les fichiers entrants
+// With this setup, when a file is uploaded using a multipart form with the field name 'image', the multer middleware will handle the file upload, save the file to the 'images' directory, and provide the necessary information about the uploaded file to the subsequent middleware or route handler.
+// Indicate to multer where to save incoming files
 const storage = multer.diskStorage({
   destination: (req, file, callback) => {
     callback(null, 'images');

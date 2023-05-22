@@ -90,6 +90,22 @@ utility.encrypt = (string) => {
   return encryptedEmail.toString();
 };
 
+
+utility.deleteExpiredAuthTokens = async () => {
+  console.log('[cron] task to delete expired auth tokens has started.');
+  const authTokens = await models.AuthToken.find({
+    expiresAt: { $lt: Date.now() },
+  });
+
+  if (authTokens.length > 0) {
+    for (let i = 0; i < authTokens.length; i++) {
+      await authTokens[i].remove();
+    }
+  } else {
+    console.log('[cron] No expired auth tokens found.');
+  }
+};
+
 // Decrypt email that has been encrypted by 'encrypt()'
 utility.decrypt = (encrypted_string) => {
   const bytes = CryptoJS.AES.decrypt(

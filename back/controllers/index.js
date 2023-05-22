@@ -20,6 +20,8 @@ sauceController.fetchAllSauce = fetchAllSauce;
 sauceController.fetchSingleSauce = fetchSingleSauce;
 sauceController.updateSauce = updateSauce;
 sauceController.deleteSauce = deleteSauce;
+
+// like sauce controller
 sauceController.likeSauce = likeSauce;
 
 export { authController, sauceController };
